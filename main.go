@@ -17,7 +17,7 @@ func main() {
 		Addresses: []string{
 			"https://localhost:9200",
 		},
-		Password: "9LHLW67-CFHol8zF3DG1",
+		Password: "5A*FdbxkXvvBHuJa*mNQ",
 		Username: "elastic",
 		CACert:   cert,
 	}
@@ -52,8 +52,21 @@ func main() {
 	var r map[string]interface{}
 	json.NewDecoder(res.Body).Decode(&r)
 
+	// newDataMap := map[string]interface{}{
+	// 	"doc": map[string]interface{}{
+	// 		"f1": "hihi haha ngu",
+	// 	},
+	// }
+	// newDataMapByte, _ := json.Marshal(newDataMap)
+	// resUpdate, errUpdate := es.Update("index_1", "uKyn-Y4BqkvBY4qAkVGS", strings.NewReader(string(newDataMapByte)))
+	// if errUpdate != nil {
+	// 	log.Println("Error: ", errUpdate)
+	// 	return
+	// }
+	// log.Println(resUpdate)
+
 	for _, h := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		d := h.(map[string]interface{})
-		log.Println(d["_source"])
+		log.Println(d)
 	}
 }
