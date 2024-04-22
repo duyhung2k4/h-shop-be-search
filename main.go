@@ -11,13 +11,12 @@ import (
 )
 
 func main() {
-	// Tạo một kết nối đến Elasticsearch
 	cert, _ := os.ReadFile("http_ca.crt")
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			"https://localhost:9200",
 		},
-		Password: "5A*FdbxkXvvBHuJa*mNQ",
+		Password: "oouLuchH8ymSYzie_+Fs",
 		Username: "elastic",
 		CACert:   cert,
 	}
