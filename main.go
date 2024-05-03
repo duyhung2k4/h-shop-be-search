@@ -1,17 +1,18 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 func main() {
-	cert, _ := os.ReadFile("http_ca.crt")
+	cert, _ := os.ReadFile("cert/http_ca.crt")
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			"https://localhost:9200",
@@ -20,52 +21,26 @@ func main() {
 		Username: "elastic",
 		CACert:   cert,
 	}
-	es, err := elasticsearch.NewClient(cfg)
+	es, err := elasticsearch.NewTypedClient(cfg)
 	if err != nil {
 		log.Fatalf("Error creating the Elasticsearch client: %s", err)
 	}
 
-	// es.Indices.Create("index_1")
-	// dataReq := map[string]interface{}{
-	// 	"f1": "hihi haha sas",
-	// }
-	// dataReqByte, _ := json.Marshal(dataReq)
-	// es.Index("index_1", bytes.NewReader(dataReqByte))
-
-	// Tạo một index mới
-	var buf bytes.Buffer
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"f1": "hihi haha sas",
-			},
-		},
+	query := types.Query{
+		Bool: &types.BoolQuery{},
 	}
-	json.NewEncoder(&buf).Encode(query)
 
-	res, _ := es.Search(
-		es.Search.WithIndex("index_1"),
-		es.Search.WithBody(strings.NewReader(buf.String())),
-	)
+	res, _ := es.Search().Index("product_index").Request(&search.Request{
+		Query: &query,
+	}).Do(context.Background())
 
-	var r map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&r)
+	hit := res.Hits.Hits[0]
 
-	// newDataMap := map[string]interface{}{
-	// 	"doc": map[string]interface{}{
-	// 		"f1": "hihi haha ngu",
-	// 	},
-	// }
-	// newDataMapByte, _ := json.Marshal(newDataMap)
-	// resUpdate, errUpdate := es.Update("index_1", "uKyn-Y4BqkvBY4qAkVGS", strings.NewReader(string(newDataMapByte)))
-	// if errUpdate != nil {
-	// 	log.Println("Error: ", errUpdate)
-	// 	return
-	// }
-	// log.Println(resUpdate)
+	dataByte, _ := hit.Source_.MarshalJSON()
+	data := map[string]interface{}{}
 
-	for _, h := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		d := h.(map[string]interface{})
-		log.Println(d)
-	}
+	json.Unmarshal(dataByte, &data)
+	data["_id"] = hit.Id_
+
+	log.Println(data)
 }
