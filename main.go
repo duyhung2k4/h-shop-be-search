@@ -1,46 +1,36 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
+	"app/config"
+	"app/routers"
 	"log"
-	"os"
-
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"net/http"
+	"sync"
+	"time"
 )
 
+// @title Swagger Search Product
+// @version 1.0
+// @description Swagger Search Product
+
+// @host localhost:18888
+// @BasePath /search-product/api/v1
 func main() {
-	cert, _ := os.ReadFile("cert/http_ca.crt")
-	cfg := elasticsearch.Config{
-		Addresses: []string{
-			"https://localhost:9200",
-		},
-		Password: "oouLuchH8ymSYzie_+Fs",
-		Username: "elastic",
-		CACert:   cert,
-	}
-	es, err := elasticsearch.NewTypedClient(cfg)
-	if err != nil {
-		log.Fatalf("Error creating the Elasticsearch client: %s", err)
-	}
+	var wg sync.WaitGroup
+	wg.Add(1)
 
-	query := types.Query{
-		Bool: &types.BoolQuery{},
-	}
+	go func() {
+		server := http.Server{
+			Addr:           ":" + config.GetAppPort(),
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+			Handler:        routers.Routers(),
+		}
 
-	res, _ := es.Search().Index("product_index").Request(&search.Request{
-		Query: &query,
-	}).Do(context.Background())
+		log.Fatalln(server.ListenAndServe())
+		wg.Done()
+	}()
 
-	hit := res.Hits.Hits[0]
-
-	dataByte, _ := hit.Source_.MarshalJSON()
-	data := map[string]interface{}{}
-
-	json.Unmarshal(dataByte, &data)
-	data["_id"] = hit.Id_
-
-	log.Println(data)
+	wg.Wait()
 }
