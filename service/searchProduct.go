@@ -5,7 +5,6 @@ import (
 	"app/model"
 	"context"
 	"encoding/json"
-	"log"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
@@ -54,8 +53,6 @@ func (s *searchService) SearchFulltextProduct(name string, size int) ([]map[stri
 		convertData["_id"] = item.Id_
 		products = append(products, convertData)
 	}
-
-	log.Println(res.Hits.Total)
 
 	return products, nil
 }
