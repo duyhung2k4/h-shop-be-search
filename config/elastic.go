@@ -1,6 +1,8 @@
 package config
 
 import (
+	"app/model"
+	"context"
 	"os"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -23,6 +25,11 @@ func connectElastic() error {
 	}
 
 	elasticClient, errElastic = elasticsearch.NewTypedClient(cfg)
+	initIndex(elasticClient)
 
 	return errElastic
+}
+
+func initIndex(elastic *elasticsearch.TypedClient) {
+	elastic.Indices.Create(model.PRODUCT_INDEX).Do(context.Background())
 }

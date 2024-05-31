@@ -24,7 +24,7 @@ func Routers() http.Handler {
 
 	searchProductController := controller.NewSearchController()
 
-	app.Route("/search-product/api/v1", func(r chi.Router) {
+	app.Route("/search/api/v1", func(r chi.Router) {
 		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 			res := map[string]interface{}{
 				"mess": "done",
