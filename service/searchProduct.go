@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
@@ -27,15 +28,19 @@ func (s *searchService) SearchFulltextProduct(filter map[string]string, size int
 	for key, value := range filter {
 		switch key {
 		case "name":
-			q := types.Query{
-				Fuzzy: map[string]types.FuzzyQuery{
-					"name": {
-						Value:     value,
-						Fuzziness: 2,
-					},
-				},
+			for _, c := range strings.Split(value, " ") {
+				if len(c) > 0 {
+					q := types.Query{
+						Fuzzy: map[string]types.FuzzyQuery{
+							"name": {
+								Value:     c,
+								Fuzziness: 2,
+							},
+						},
+					}
+					mustQuery = append(mustQuery, q)
+				}
 			}
-			mustQuery = append(mustQuery, q)
 		default:
 			q := types.Query{
 				Match: map[string]types.MatchQuery{
