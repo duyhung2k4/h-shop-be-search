@@ -11,7 +11,7 @@ import (
 func connectElastic() error {
 	var errElastic error
 
-	cert, err := os.ReadFile("cert/http_ca.neu.crt")
+	cert, err := os.ReadFile("cert/http_ca.crt")
 	if err != nil {
 		return err
 	}
@@ -24,8 +24,9 @@ func connectElastic() error {
 		CACert:   cert,
 	}
 
-	elasticClient, errElastic = elasticsearch.NewTypedClient(cfg)
-	initIndex(elasticClient)
+	elasticTypeClient, errElastic = elasticsearch.NewTypedClient(cfg)
+	elasticClient, errElastic = elasticsearch.NewClient(cfg)
+	initIndex(elasticTypeClient)
 
 	return errElastic
 }

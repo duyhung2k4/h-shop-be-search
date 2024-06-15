@@ -6,7 +6,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func GetElasticClient() *elasticsearch.TypedClient {
+func GetElasticTypeClient() *elasticsearch.TypedClient {
+	return elasticTypeClient
+}
+
+func GetElasticClient() *elasticsearch.Client {
 	return elasticClient
 }
 

@@ -5,6 +5,7 @@ import (
 	"app/model"
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
@@ -12,29 +13,51 @@ import (
 )
 
 type searchService struct {
-	elasticClient *elasticsearch.TypedClient
+	elasticTypeClient *elasticsearch.TypedClient
 }
 
 type SearchService interface {
-	SearchFulltextProduct(name string, size int) ([]map[string]interface{}, error)
+	SearchFulltextProduct(filter map[string]string, size int) ([]map[string]interface{}, error)
 }
 
-func (s *searchService) SearchFulltextProduct(name string, size int) ([]map[string]interface{}, error) {
+func (s *searchService) SearchFulltextProduct(filter map[string]string, size int) ([]map[string]interface{}, error) {
 	var products []map[string]interface{}
+
+	mustQuery := []types.Query{}
+	for key, value := range filter {
+		switch key {
+		case "name":
+			q := types.Query{
+				Fuzzy: map[string]types.FuzzyQuery{
+					"name": {
+						Value:     value,
+						Fuzziness: 2,
+					},
+				},
+			}
+			mustQuery = append(mustQuery, q)
+		default:
+			q := types.Query{
+				Match: map[string]types.MatchQuery{
+					key: {
+						Query: fmt.Sprint(value),
+					},
+				},
+			}
+			mustQuery = append(mustQuery, q)
+		}
+	}
 
 	request := search.Request{
 		Query: &types.Query{
-			Fuzzy: map[string]types.FuzzyQuery{
-				"name": {
-					Value:     name,
-					Fuzziness: 1,
-				},
+			Bool: &types.BoolQuery{
+				Must: mustQuery,
 			},
 		},
 		Size: &size,
 	}
 
-	res, err := s.elasticClient.
+	res, err := s.elasticTypeClient.
 		Search().
 		Index(model.PRODUCT_INDEX).
 		Request(&request).Do(context.Background())
@@ -59,6 +82,6 @@ func (s *searchService) SearchFulltextProduct(name string, size int) ([]map[stri
 
 func NewSearchService() SearchService {
 	return &searchService{
-		elasticClient: config.GetElasticClient(),
+		elasticTypeClient: config.GetElasticTypeClient(),
 	}
 }

@@ -26,8 +26,9 @@ type SearchController interface {
 // @Router       /product/search [get]
 func (c *searchController) SearchProduct(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
-	nameProduct := params.Get("name")
 	sizeString := params.Get("size")
+	name := params.Get("name")
+	category := params.Get("category")
 
 	var size int = 0
 	if sizeString == "" {
@@ -41,7 +42,18 @@ func (c *searchController) SearchProduct(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	products, err := c.searchProductService.SearchFulltextProduct(nameProduct, size)
+	filter := map[string]string{
+		"name":       name,
+		"categoryId": category,
+	}
+	mapFilter := map[string]string{}
+	for key, value := range filter {
+		if len(value) > 0 {
+			mapFilter[key] = value
+		}
+	}
+
+	products, err := c.searchProductService.SearchFulltextProduct(mapFilter, size)
 	if err != nil {
 		internalServerError(w, r, err)
 		return

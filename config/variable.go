@@ -21,7 +21,8 @@ var (
 	passwordElasticSearch string
 	urlRedis              string
 
-	elasticClient *elasticsearch.TypedClient
-	rdb           *redis.Client
-	jwt           *jwtauth.JWTAuth
+	elasticTypeClient *elasticsearch.TypedClient
+	elasticClient     *elasticsearch.Client
+	rdb               *redis.Client
+	jwt               *jwtauth.JWTAuth
 )
